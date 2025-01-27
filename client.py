@@ -81,9 +81,12 @@ class Client:
 
 class Miner:
     chain = []
+    diffAdjuster = 10000000000000000000000000000000000
     def __init__(self):
         self.importChain()
-        self.mine(self.chain[-1])
+        while True:
+            self.mine(self.chain[-1])
+            #print(self.chain)
     def importChain(self):
         print("Checking for blockchain on system...")
         with open("blocks.json", "r") as file:
@@ -106,20 +109,43 @@ class Miner:
         lastHash = hashlib.md5(lastHash).hexdigest()
         print(lastHash)
         dec = int(lastHash, 16)
-        difficulty = dec - int(previousBlock["difficulty"])
+        difficulty = int(previousBlock["difficulty"])
+        
         nonce = 0
+        testDec = 0
         while True:
             if (nonce%100000==0):
                 os.system('cls' if os.name == 'nt' else 'clear')
                 print("Trying %d" % nonce)
+                print("Previous Hash: %d" % testDec)
+                print("Difficulty: %d" % difficulty)
             testStr = lastHash+str(nonce)
             testStr = testStr.encode("utf-8")
             test = hashlib.md5(testStr).hexdigest()
             testDec = int(test, 16)
-            if (testDec<difficulty):
+            if (testDec<int(difficulty)):
                 print("I found it!  Nonce:%d" % nonce)
+                print("Difficulty: %d" % difficulty)
+                print("Test Difficulty: %d" % testDec)
+                self.buildBlock(previousBlock, nonce)
                 break
             nonce+=1
+            
+    def buildBlock(self, previousBlock, nonce):
+        index = previousBlock["index"]+1
+        text = ""
+        previousBlockHash = self.getBlockHash(previousBlock)
+        difficulty = previousBlock["difficulty"]-self.diffAdjuster
+        self.diffAdjuster=self.diffAdjuster-(self.diffAdjuster*.1)
+        minedDate = str(datetime.datetime.now())
+        newBlock = {"index":index, "text":text, "previousHash":previousBlockHash, "difficulty":difficulty, "minedDate":minedDate}
+        print(newBlock)
+        self.chain.append(newBlock)
+        
+    def getBlockHash(self, block):
+        blockJson = json.dumps(block)
+        encodedJson = blockJson.encode("utf-8")
+        return hashlib.md5(encodedJson).hexdigest()
         
 #client = Client()
 miner = Miner()
