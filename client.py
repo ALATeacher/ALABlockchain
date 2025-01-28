@@ -81,7 +81,7 @@ class Client:
 
 class Miner:
     chain = []
-    diffAdjuster = 10000000000000000000000000000000000
+    firstDifficulty = 10000000000000000000000000000000000
     def __init__(self):
         self.importChain()
         while True:
@@ -119,6 +119,7 @@ class Miner:
                 print("Trying %d" % nonce)
                 print("Previous Hash: %d" % testDec)
                 print("Difficulty: %d" % difficulty)
+                print(previousBlock)
             testStr = lastHash+str(nonce)
             testStr = testStr.encode("utf-8")
             test = hashlib.md5(testStr).hexdigest()
@@ -135,10 +136,9 @@ class Miner:
         index = previousBlock["index"]+1
         text = ""
         previousBlockHash = self.getBlockHash(previousBlock)
-        difficulty = previousBlock["difficulty"]-self.diffAdjuster
-        self.diffAdjuster=self.diffAdjuster-(self.diffAdjuster*.1)
+        difficulty = self.firstDifficulty/index;
         minedDate = str(datetime.datetime.now())
-        newBlock = {"index":index, "text":text, "previousHash":previousBlockHash, "difficulty":difficulty, "minedDate":minedDate}
+        newBlock = {"index":index, "text":text, "previousHash":previousBlockHash, "difficulty":difficulty, "minedDate":minedDate, "nonce":nonce}
         print(newBlock)
         self.chain.append(newBlock)
         
